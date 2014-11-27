@@ -10,9 +10,9 @@ import pickle
 # Some constants
 #----------------------------------------------
 
-NO_PREVIEW_THUMBNAIL = "static/medias/noPreview.png"
-DEFAULT_THUMB_FOLDER = "static/data/thumbnails"
-DEFAULT_USER_FOLDER  = "static/data/users"
+NO_PREVIEW_THUMBNAIL = "medias/noPreview.png"
+DEFAULT_THUMB_FOLDER = "REMOVE_static/thumbnails"
+DEFAULT_USER_FOLDER  = "REMOVE_static/users"
 DEFAULT_DATA_REFRESH_PERIOD = 15 * 60
 
 #----------------------------------------------
@@ -144,6 +144,8 @@ class ArteWebRemoteManager:
         # create and start the thread that updates Arte data from the Arte website
         self.updater = ArteWebRemoteUpdater(self)
         self.updater.start()
+        
+        # force a refresh to initialize Arte data
         self.updater.refresh()
 
     # release all resources

@@ -13,20 +13,41 @@
 
 <script src="static/jquery-2.1.1/jquery.js"></script>
 <script src="static/bootstrap-3.2.0/js/bootstrap.js"></script>
+<script src="static/qarteremote.js"></script>
 
-<div class="container">
-  <div class="row">
-		<div class="col-xs-6">
-			<div class="row">
-				<div class="col-xs-6">A</div>
-			</div>
-			<div class="row">
-				<div class="col-xs-6">B</div>
-			</div>
-		</div>
-	<div class="col-xs-2">C</div>
-  </div>
+<div id='videos_viewer'>
+    <div id='videos_viewer_list_panel'>
+    
+        {% for video in videos %}
+        <div class='videos_viewer_item'>
+            <img class='medium_video_thumbnail' src='{{ video.thumbnailFilepath }}' id='video_item_{{ loop.index0 }}'></img>
+            <span class='video_title'> {{ video.title }} </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id='videos_viewer_info_panel'>
+        <h1 id='full_video_title'><em>{{ videos[0].title }}</em>  -  {{ videos[0].date }} ({{ videos[0].duration }} m.)</h1>
+        <p id='video_description'>{{ videos[0].pitch }}</p>
+    </div>
 </div>
+
+<div id='download_panel'>
+    <div id='download_panel_item_list'>
+        <div class='download_panel_item'>
+            <img class='small_video_thumbnail' src='' alt='' width='' height=''></img>
+            <span class='video_title'></span>
+            <a href='' id='configuration_button'></a>
+            <a href='' id='remove_button'></a>
+        </div>
+    </div>
+    <div id='download_panel_commands'>
+        <a href='' id='start_download_button'></a>
+        <img id='download_progress_bar'></img>
+        <a href='' id='stop_download_button'></a>
+    </div>
+</div>
+
 
 </body>
 </html>
