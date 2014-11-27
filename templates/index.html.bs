@@ -1,0 +1,52 @@
+<html>
+<head>
+
+ <!-- Bootstrap and JQuery CSS -->
+
+<link rel='stylesheet' type='text/css' href='static/test.css'>
+<link href="static/bootstrap-3.2.0/css/bootstrap.css" rel="stylesheet">
+
+</head>
+<body>
+
+ <!-- Bootstrap and JQuery JS -->
+
+<script src="static/jquery-2.1.1/jquery.js"></script>
+<script src="static/bootstrap-3.2.0/js/bootstrap.js"></script>
+
+<div class="container">
+	<div class="row">
+
+		<!-- Viewer Panel-->
+		<div class="col-xs-10">
+
+			<!-- Image Viewer Panel-->
+			<div class="row">
+				<div class="col-xs-10">
+
+					{% for video in videos %}
+					<div class='col-xs-2'>
+						<img class='medium_video_thumbnail' src='{{ video.thumbnailFilepath }}'></img>
+						<span class='video_title'> {{ video.title }} </span>
+					</div>
+					{% endfor %}
+				
+				</div>
+			</div>
+
+			<!-- Information Panel-->
+			<div class="row">
+				<div class="col-xs-10">
+					<h1 id='full_video_title'><em>{{ videos[0].title }}</em>  -  {{ videos[0].date }} ({{ videos[0].duration }} m.)</h1>
+					<p id='video_description'>{{ videos[0].pitch }}</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Download Panel -->
+		<div class="col-xs-2">C</div>
+	</div>
+</div>
+
+</body>
+</html>
