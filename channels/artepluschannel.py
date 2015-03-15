@@ -18,41 +18,43 @@ class ArtePlusChannel(pyvd.channel.Channel):
 
     #
     def filterHTTPStreams(self, p_streams):
-        streams = []
+        streams = {}
 
         # search all HTTP streams in the list of streams    
         for key in p_streams.keys():
             if "HTTP" in key:
-                stream = {}
-
+ 
                 # get stream language
                 if "VA" in p_streams[key]["versionShortLibelle"]:
-                    stream["language"] = "de"
+                   language = "de"
                 elif "VF" in p_streams[key]["versionShortLibelle"]:
-                    stream["language"] = "fr"
+                   language = "fr"
                 else:
                     # skip this stream
                     continue
+
+                if language not in streams:
+                    streams[language] = {}
 
                 # get stream quality
                 if "SD" in p_streams[key]["quality"]:
-                    stream["quality"] = "Low"
+                    quality = "Low"
                 elif "HD" in p_streams[key]["quality"]:
-                    stream["quality"] = "High"
+                    quality = "High"
                 elif "MD" in p_streams[key]["quality"]:
-                    stream["quality"] = "Medium"
+                    quality = "Medium"
                 else:
                     # skip this stream
                     continue
 
+                if quality not in streams[language]:
+                    streams[language][quality] = {}
+
                 # get stream width x height
-                stream["videosize"] = "{} x {}".format(p_streams[key]["width"], p_streams[key]["height"])
+                streams[language][quality]["videosize"] = "{} x {}".format(p_streams[key]["width"], p_streams[key]["height"])
  
                 # get stream url                                
-                stream["url"] = p_streams[key]["url"]
-
-                # add the new stream in the list
-                streams.append(stream)
+                streams[language][quality]["url"] = p_streams[key]["url"]
 
                 # remove the entry in the streams dictionary
                 del p_streams[key]
@@ -61,13 +63,57 @@ class ArtePlusChannel(pyvd.channel.Channel):
 
     #
     def filterRTMPStreams(self, p_streams):
-        pass
+        streams = {}
+
+        # search all RTMP streams in the list of streams    
+        for key in p_streams.keys():
+            if "RTMP" in key:
+ 
+                # get stream language
+                if "VA" in p_streams[key]["versionShortLibelle"]:
+                   language = "de"
+                elif "VF" in p_streams[key]["versionShortLibelle"]:
+                   language = "fr"
+                else:
+                    # skip this stream
+                    continue
+
+                if language not in streams:
+                    streams[language] = {}
+
+                # get stream quality
+                if "SD" in p_streams[key]["quality"]:
+                    quality = "Low"
+                elif "HD" in p_streams[key]["quality"]:
+                    quality = "High"
+                elif "MD" in p_streams[key]["quality"]:
+                    quality = "Medium"
+                else:
+                    # skip this stream
+                    continue
+
+                if quality not in streams[language]:
+                    streams[language][quality] = {}
+
+                # get stream width x height
+                streams[language][quality]["videosize"] = "{} x {}".format(p_streams[key]["width"], p_streams[key]["height"])
+ 
+                # get stream url                                
+                streams[language][quality]["url"] = p_streams[key]["url"]
+
+                # get stream streamer                                
+                streams[language][quality]["streamer"] = p_streams[key]["streamer"]
+
+                # remove the entry in the streams dictionary
+                del p_streams[key]
+    
+        return streams        
 
     #
     def filterStreams(self, p_streams):
         streams = {}
         streams["HTTP"] = self.filterHTTPStreams(p_streams)
-#        streams["RTMP"] = filterRTMPStreams(p_streams)
+        streams["RTMP"] = self.filterRTMPStreams(p_streams)
         return streams
         
     #
@@ -84,8 +130,6 @@ class ArtePlusChannel(pyvd.channel.Channel):
 
     #
     def parseJSONStreamsFile(self, p_url):
-    
-#        print p_url
 
         # get JSON streams file
         jsonStreamsFile = self.getPageContent(p_url)
