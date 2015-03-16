@@ -2,22 +2,17 @@
 
 import threading
 import urllib2
-
-class Downloader(threading.Thread):
-	
-	def __init__(self):
-		threading.Thread.__init__(self)
+import subprocess
 
 #	
 class HTTPDownloader(threading.Thread):
 	
-	def __init__(self, p_url, p_outputDirname, p_outputFilename=""):
-#		super.__init__(self)
+	def __init__(self, p_url, p_outputDirname, p_outputFilename="", p_blocksize=8192):
 		threading.Thread.__init__(self)
 		self.url = p_url
 		self.outDirname  = p_outputDirname 
 		self.outFilename = p_outputFilename
-		self.blocksize   = 8192
+		self.blocksize   = p_blocksize
 	
 	def run(self):
 		
@@ -33,8 +28,8 @@ class HTTPDownloader(threading.Thread):
 		inVideoFileSize = int(meta.getheaders("Content-Length")[0])
 
 		# build output filename
-#		if self.outFilename == "":
-#			self.outFilename = # basename
+		if self.outFilename == "":
+			self.outFilename = self.url.split("/")[-1]
 
 		# open the output file
 		outVideoFile = open(self.outDirname + "/" + self.outFilename, 'wb')
@@ -66,5 +61,38 @@ class HTTPDownloader(threading.Thread):
 		return True
 
 #	
-class RTMPDownloader(Downloader):
-	pass
+class RTMPDownloader(threading.Thread):
+	
+    def __init__(self, p_host, p_url, p_outputDirname, p_outputFilename=""):
+        threading.Thread.__init__(self)
+        self.host = p_host
+        self.url  = p_url
+        self.outDirname  = p_outputDirname 
+        self.outFilename = p_outputFilename
+	
+    def run(self):
+
+        # build output filename
+        if self.outFilename == "":
+            self.outFilename = self.url.split("/")[-1]
+
+        # build the rtmpdump command
+        command = ["rtmpdump",  "-r",  self.host + "/" + self.url, "-o", self.outDirname + "/" + self.outFilename]
+
+        # launch the command in a subprocess
+        try:
+            process = subprocess.Popen(command, stdout = subprocess.PIPE,  stderr = subprocess.STDOUT)
+        except:
+            print "Unable to launch the command {}".format(" ".join(command))
+            return False
+        
+        # monitor the subprocess (TODO)
+        while True:
+            line = process.stdout.readline()
+            
+            if not line:
+                break;
+        
+        
+	
+		return True

@@ -102,7 +102,7 @@ class ArtePlusChannel(pyvd.channel.Channel):
                 streams[language][quality]["url"] = p_streams[key]["url"]
 
                 # get stream streamer                                
-                streams[language][quality]["streamer"] = p_streams[key]["streamer"]
+                streams[language][quality]["host"] = p_streams[key]["streamer"]
 
                 # remove the entry in the streams dictionary
                 del p_streams[key]

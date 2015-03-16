@@ -10,11 +10,11 @@ import pyvd.downloader
 p = artepluschannel.ArtePlusChannel()
 videos = p.parse() 
 
-print videos[3]
+print videos[0]
 
-d = pyvd.downloader.HTTPDownloader(videos[3]["streams"]["HTTP"]["fr"]["Low"]["url"], "/tmp", "toto.mp4")
-d.start()
-d.join()
+#d = pyvd.downloader.HTTPDownloader(videos[3]["streams"]["HTTP"]["fr"]["Low"]["url"], "/tmp", "toto.mp4")
+#d.start()
+#d.join()
 
 #import urllib2
 

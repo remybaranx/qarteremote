@@ -2,9 +2,35 @@
 
 import threading
 
+
+class Updater(threading.Thread):
+    
+    def __init__(self):
+        pass
+        
+    def run(self):
+        pass
+
+
+
+
+
+
+
 DEFAULT_THUMB_FOLDER = "REMOVE_static/thumbnails"
 DEFAULT_USER_FOLDER  = "REMOVE_static/users"
 DEFAULT_DATA_REFRESH_PERIOD = 15 * 60
+
+
+
+
+
+
+
+
+
+
+
 
 class Updater(threading.Thread):
 
