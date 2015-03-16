@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import pyvd.channel
+import pyvd.parser
 import json
 import urllib2
 import re
 
-class ArtePlusChannel(pyvd.channel.Channel):
+class ArtePlusParser(pyvd.parser.Parser):
     
     BASE_URL = "http://www.arte.tv"
     ROOT_URL = BASE_URL + "/guide/fr/plus7.json"

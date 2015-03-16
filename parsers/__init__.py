@@ -2,4 +2,4 @@
 
 # add your plugin here
 
-import artepluschannel
+import arteplusparser

@@ -43,7 +43,7 @@ app = Flask(__name__)
 #----------------------------------------------
 # manager initialization
 #----------------------------------------------
-pyvdManager = pyvd.manager.Manager("channels")
+pyvdManager = pyvd.manager.Manager()
 
 #----------------------------------------------
 # entry point
@@ -72,51 +72,64 @@ def handle_video_channels_request():
 #
 # Request video channel list reloading : /api/1.0/<channelId>/reload
 #
-@app.route("/api/1.0/<int:p_channelId>/reload", methods=['GET'])
+@app.route("/api/1.0/<p_channelId>/reload", methods=['GET'])
 def handle_reload_request(p_channelId):
-    pyvdManager.refreshChannel(p_channelId)
-    return make_response("OK", 200)
+    if pyvdManager.refreshChannel(p_channelId):
+        return make_response("OK", 200)
+        
+    return make_response("ERROR", 400);
 
 #
 # Request video channel list : /api/1.0/<channelId>/videos
 #
-@app.route("/api/1.0/<int:p_channelId>/videos", methods=['GET'])
+@app.route("/api/1.0/<p_channelId>/videos", methods=['GET'])
 def handle_channel_videos_list_request(p_channelId):
     videos = pyvdManager.getVideos(p_channelId)
+
+    if videos is None:
+        return make_response("ERROR", 400);
+    
     return make_response(jsonify({'channel' : p_channelId, 'videos': videos}), 200)
 
 #
-# Request video info  : /api/1.0/video/info/<video_id>
+# Request video info  : /api/1.0/<p_channelId>/video/info/<video_id>
 #
-@app.route("/api/1.0/video/info/<int:p_videoId>", methods=['GET'])
-def handle_video_info_request(p_videoId):
-    video = pyvdManager.getVideoInfo(p_videoId)
-    return make_response(jsonify({'video': video}), 200)
+@app.route("/api/1.0/<p_channelId>/video/info/<int:p_videoId>", methods=['GET'])
+def handle_video_info_request(p_channelId, p_videoId):
+    videoInfo = pyvdManager.getVideoInfo(p_channelId, p_videoId)
+
+    if videoInfo is None:
+        return make_response("ERROR", 400);
+
+    return make_response(jsonify({'video': videoInfo}), 200)
 
 #
-# add a video in the download list : /api/1.0/video/add/<video_id>
+# get the current download list : /api/1.0/downloadlist
 #
-@app.route("/api/1.0/video/add/<int:p_videoId>", methods=['POST'])
-def handle_video_add_request(p_videoId):
-    pyvdManager.addVideoToDownloadList(p_videoId)
+@app.route("/api/1.0/downloadlist", methods=['GET'])
+def handle_download_list_request():
+    downloadList = pyvdManager.getDownloadList()
+    return make_response(jsonify({'downloadList': downloadList}), 200)
+
+#
+# add a video in the download list : /api/1.0/downloadlist/add/<p_channelId>/<video_id>
+#
+@app.route("/api/1.0/downloadlist/add/<p_channelId>/<int:p_videoId>", methods=['GET'])
+def handle_video_add_request(p_channelId, p_videoId):
+    if not pyvdManager.addToDownloadList(p_channelId, p_videoId):
+        return make_response("ERROR", 400)
+
     return make_response("OK", 200)
 
 #
-# remove a video from the download list: /api/1.0/video/delete/<video_id>
+# remove a video from the download list: /api/1.0/downloadlist/del/<p_channelId>/<video_id>
 #
-@app.route("/api/1.0/video/remove/<int:p_videoId>", methods=['GET'])
-def handle_video_remove_request(p_videoId):
-    pyvdManager.removeVideoFromDownloadList(p_videoId)
-    return make_response("OK", 200)
+@app.route("/api/1.0/downloadlist/del/<p_channelId>/<video_id>", methods=['GET'])
+def handle_video_remove_request(p_channelId, p_videoId):
+    if not pyvdManager.delFromDownloadList(p_channelId, p_videoId):
+        return make_response("ERROR", 400)
 
-#
-# configure a video in the download list /api/1.0/video/configure/<video_id>
-#
-@app.route("/api/1.0/video/configure/<int:p_videoId>", methods=['POST'])
-def handle_video_configure_request(p_videoId):
-    #todo
     return make_response("OK", 200)
-
 
 #----------------------------------------------
 # Common routes handling
@@ -151,7 +164,8 @@ if __name__ == "__main__":
     pyvdManager.start()
 
     # run the Flask application
-    app.run(debug=True)
-
-    # stop the API manager
-    pyvdManager.stop()
+    try:
+        app.run(debug=True)
+    finally:
+        # stop the API manager
+        pyvdManager.stop()
