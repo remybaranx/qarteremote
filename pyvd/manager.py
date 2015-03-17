@@ -4,10 +4,12 @@ import threading
 import os
 import urllib2
 import pickle
+import logging
 import pyvd.parser
 import parsers
 import pyvd.updater
 import pyvd.downloader
+import pyvd.config
 
 class Manager:
 
@@ -15,47 +17,59 @@ class Manager:
         Handle all requests.  
     """
 
-    def __init__(self):
-        self.userConfig   = {}
-        self.systemConfig = {}
+    #
+    def __init__(self, p_configPath):
+        self.systemConfig = pyvd.config.Config(p_configPath + "/system.json")
+        self.userConfig   = pyvd.config.Config(p_configPath + "/user.json")
         self.updaters     = {}
         self.downloadList = {}
 
+    #
     def start(self):
         self.createUpdaters()
         self.startUpdaters()
         
+    #
     def stop(self):
         for key, updater in self.updaters.items():
             updater.stop()
 
-    def loadConfig(self):
-        if not self.loadSystemConfig():
-            return False
-            
-        return self.loadUserConfig()
+    #
+    def createDefaultSystemConfig():
+        self.systemConfig["server.port"] =10000
+        self.systemConfig.save()
+        
+    #
+    def createDefaultUserConfig():
+        pass
 
+    #
     def loadSystemConfig(self):
         # to do
-        return True
+        return self.systemConfig.load()
         
+    #
     def loadUserConfig(self):
-        # to move in a configuration file
-        self.userConfig["UPDATERS"] = {}
-        self.userConfig["UPDATERS"]["arteplus"] = {'refreshPeriod' : 15}
+        self.userConfig["updaters.arteplus.refreshPeriod"] = 15
         return True
 
+    #
     def createUpdaters(self):
+        logging.info("Creating updaters ...")
         for parserPlugin in pyvd.parser.Parser.plugins:
             parser  = parserPlugin()
-            updater = pyvd.updater.Updater(parser, self.userConfig["UPDATERS"][parser.id])
+            updater = pyvd.updater.Updater(parser, self.userConfig["updaters." + parser.id])
             self.updaters[parser.id] = updater
+            logging.info(" -> %s (%s) loaded", parser.id, parser.name)
 
+    #
     def startUpdaters(self):
+        logging.info("Starting updaters ...")
         for key, updater in self.updaters.items():
             updater.start()
             updater.refresh()
-
+            logging.info(" -> %s (%s) started", parser.id, parser.name)
+    
     #------------------
     # API manager
     #------------------

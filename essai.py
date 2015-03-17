@@ -1,16 +1,34 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-import sys
-sys.path.append("channels")
+import os
 
-import artepluschannel
-import pyvd.downloader
+print os.path.splitext(os.path.basename(__file__))[0]
 
-p = artepluschannel.ArtePlusChannel()
-videos = p.parse() 
+#import pyvd.config
 
-print videos[0]
+#c = pyvd.config.Config("/home/fnlocal/workspace/perso/pyvd/conf/system.json")
+#c.load()
+
+#c["a.b.c"] = 10
+#c["a.b"] = 10
+#c["server.address"] = "toto"
+#c["a.b.c"] = 'ttt'
+#c["server"] = 'lol'
+#print c
+
+
+
+#import sys
+#sys.path.append("channels")
+
+#import artepluschannel
+#import pyvd.downloader
+
+#p = artepluschannel.ArtePlusChannel()
+#videos = p.parse() 
+
+#print videos[0]
 
 #d = pyvd.downloader.HTTPDownloader(videos[3]["streams"]["HTTP"]["fr"]["Low"]["url"], "/tmp", "toto.mp4")
 #d.start()

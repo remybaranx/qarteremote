@@ -39,9 +39,8 @@ class Updater(threading.Thread):
             videos = self.parser.parse()
 
             # update the videos list
-            self.mutex.acquire()
-            self.videos = videos
-            self.mutex.release()
+            with self.mutex:
+                self.videos = videos
 
             # clear the refresh event
             self.refreshEvent.clear()
@@ -59,15 +58,12 @@ class Updater(threading.Thread):
     #
     def getVideoInfo(self, p_videoId):
         
-        self.mutex.acquire()
-
-        try:
-            videoInfo = self.videos[p_videoId]
-        except:
-            print "Invalid video id {}".format(p_videoId)
-            videoInfo = None
-
-        self.mutex.release()
+        with self.mutex:
+            try:
+                videoInfo = self.videos[p_videoId]
+            except:
+                print "Invalid video id {}".format(p_videoId)
+                videoInfo = None
         
         return videoInfo
 

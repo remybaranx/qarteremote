@@ -1,0 +1,14 @@
+// user configuration for pyvd
+{
+    path : {
+        "thumbnails" : "/tmp/thumbnails",
+    }
+    
+    updaters : [
+        {
+            "id" : "arteplus",
+            "refreshPeriod" : 15,
+            "downloadDirectory" : "/tmp"
+        }
+    ]
+}

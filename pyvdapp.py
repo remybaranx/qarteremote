@@ -1,30 +1,7 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 #
-#----------------------------------------------
-# API definition for pyvd
-#----------------------------------------------
-#
-# VIDEO CHANNELS:
-#
-# Request videos channels : /channels
-# Request to refresh the video list of a channel : /<channel_id>/reload
-# Request the videos list of a channel : /<channel_id>/videos
-#
-# VIDEOS:
-#
-# Request a video info  : /video/info/<video_id>
-#
-# DOWNLOAD :
-#
-# add a video in the download list : /video/add/<video_id>
-# remove a video from the download list: /video/delete/<video_id>
-# configure a video in the download list /video/configure/<video_id>
-# start downloading : /download/start
-# cancel downloading : /download/cancel
-#
-# TOOL CONFIGURATION :
-#
+
 from flask import Flask, make_response
 from flask import send_from_directory
 from flask import jsonify
@@ -34,16 +11,18 @@ from PIL import Image
 import pyvd.manager
 import os
 import sys
+import logging
 
 #----------------------------------------------
 # Flask initialization
 #----------------------------------------------
 app = Flask(__name__)
+appName = os.path.splitext(os.path.basename(__file__))[0]
 
 #----------------------------------------------
 # manager initialization
 #----------------------------------------------
-pyvdManager = pyvd.manager.Manager()
+pyvdManager = pyvd.manager.Manager("./conf")
 
 #----------------------------------------------
 # entry point
@@ -154,18 +133,23 @@ def handle_error(error):
 #----------------------------------------------
 if __name__ == "__main__":
 
-    # load the configuration
-    if not pyvdManager.loadConfig():
-        print "ERROR !"
-        #TODO
-        sys.exit(-1)
+    # create logger
+    logging.basicConfig(filename='./' + appName + '.log',
+                        format='%(asctime)s::%(levelname)s::%(filename)s:%(lineno)d::%(message)s',
+                        level=logging.DEBUG)
+    logging.info("--------------- APPLICATION STARTED ----------------------")
 
+    # load the configuration
+    #TODO
+    pyvdManager.loadSystemConfig()
+    pyvdManager.loadUserConfig()
+    
     # start the API manager
     pyvdManager.start()
 
     # run the Flask application
     try:
-        app.run(debug=True)
+        app.run(debug=True, use_reloader=False)
     finally:
         # stop the API manager
         pyvdManager.stop()
