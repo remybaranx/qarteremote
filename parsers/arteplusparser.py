@@ -4,6 +4,8 @@ import pyvd.parser
 import json
 import urllib2
 import re
+import datetime
+import logging
 
 class ArtePlusParser(pyvd.parser.Parser):
     
@@ -15,6 +17,8 @@ class ArtePlusParser(pyvd.parser.Parser):
         self.id = "arteplus"
         self.name = "Arte +7"
         self.jsonStreamsUrlRegex = re.compile("^.*arte_vp_url='(http.*PLUS7-F/ALL/ALL.json).*", re.MULTILINE)
+        self.dateRegex = re.compile("[a-zA-Z]+\W+([0-9]{1,2})\W+([a-zA-Z]+).+\W+([0-9]{1,2})h([0-9]{2})")
+        self.months = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre']
 
     #
     def filterHTTPStreams(self, p_streams):
@@ -202,12 +206,25 @@ class ArtePlusParser(pyvd.parser.Parser):
             video["title"]      = item["title"]
             video["url"]        = self.BASE_URL + item["url"] + "?autoplay=1"
             video["thumbnail"]  = item["image_url"]
-            video["date"]       = item["airdate_long"]
-            video["duration"]  = item["duration"]
+            video["duration"]   = item["duration"]
             video["pitch"]      = item["desc"]
             video["categories"] = item["video_channels"].split(", ")
             video["streams"]    = self.getVideoStreams(video["url"])
-            
+
+            # normalize date and time
+            regexResult   = self.dateRegex.search(item["airdate_long"])
+            video["date"] = datetime.datetime(datetime.datetime.today().year, 
+                                              self.months.index(regexResult.group(2)), 
+                                              int(regexResult.group(1)), 
+                                              int(regexResult.group(3)), 
+                                              int(regexResult.group(4)))
+
+            logging.debug("video title=%s date=%s duration=%s url=%s added",
+                         video["title"], 
+                         video["date"].strftime("%m%d%H%M"),
+                         video["duration"], 
+                         video["url"]);
+           
             videos.append(video)
         
         return videos

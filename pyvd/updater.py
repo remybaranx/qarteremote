@@ -2,14 +2,18 @@
 
 import threading
 import copy
+import logging
 import pyvd.parser
+import os
+import urllib2
 
+#
 class Updater(threading.Thread):
     
-    def __init__(self, p_parser, p_config={}):
+    def __init__(self, p_parser, p_config):
         threading.Thread.__init__(self)
         self.parser = p_parser
-        self.config = p_config  # TODO make a default config if p_config is empty
+        self.config = p_config
         self.videos = []
         self.refreshEvent  = threading.Event()
         self.mutex         = threading.RLock()
@@ -17,16 +21,19 @@ class Updater(threading.Thread):
         
     def run(self):
 
+        logging.info("start updater for %s (%s)", self.parser.id, self.parser.name)
+
         # sanity checks
         if self.parser is None:
-            print "Invalid parser"
+            logging.error("Invalid parser")
             return False
 
         # main update loop
-        print "Start updater for {}".format(self.parser.id)
         self.isRunning = True
         
         while self.isRunning:
+
+            logging.debug("wait for refresh event [period=%d]", self.config["refreshPeriod"])
 
             # wait for a refresh event (or until the refresh period is elapsed)
             self.refreshEvent.wait(self.config["refreshPeriod"])
@@ -34,18 +41,61 @@ class Updater(threading.Thread):
             if not self.isRunning:
                 continue
 
-            print "start refreshing {} ...".format(self.parser.id)
+            # start refreshing the video list
+            logging.debug("start refreshing video list for %s (%s) ...", self.parser.id, self.parser.name)
 
             videos = self.parser.parse()
 
             # update the videos list
             with self.mutex:
+                logging.debug("update video list")
                 self.videos = videos
+
+            # get thumbnails if required
+            if self.config["downloadThumbnails"]:
+                logging.debug("downloading thumbnails for %s (%s) ...", self.parser.id, self.parser.name)
+
+                for i in range(0, len(videos)):
+
+                    logging.debug("downloading thumbnail %d (%s) ...", i, videos[i]["thumbnail"])
+                    
+                    # build output thumbnail filename
+                    thumbExtension = os.path.splitext(videos[i]["thumbnail"])[1]
+                    thumbFilename  = videos[i]["date"].strftime("%m%d%H%M") + "_" + str(videos[i]["duration"]) + thumbExtension
+                    
+                    # try to download the thumbnail
+                    thumbUrl = self._downloadThumbnail(videos[i]["thumbnail"], self.config["downloadDirectory"] + "/" + thumbFilename)
+
+                    with self.mutex:
+                        self.videos[i]["thumbnail"] = thumbUrl
+
+                    logging.debug("thumbnail %s downloaded in %s", videos[i]["thumbnail"], self.config["downloadDirectory"] + "/" + thumbFilename)
+
+                logging.debug("Thumbnails downloaded !")
 
             # clear the refresh event
             self.refreshEvent.clear()
 
-            print "{} refreshed !".format(self.parser.id)
+            logging.debug("%s refreshed !", self.parser.id)
+
+    #
+    def _downloadThumbnail(self, p_url, p_outFilepath):
+        thumbnailUrl = p_url
+        
+        try:
+            # todo : 
+            
+            with open(p_outFilepath, 'wb') as outThumbFile:
+                inThumbFile = urllib2.urlopen(p_url)
+                outThumbFile.write(inThumbFile.read())
+                
+            thumbnailUrl = p_outFilepath
+
+        except Exception as e:
+            logging.error("Unable to download the file %s (%s)", p_url, str(e))
+            thumbnailUrl = p_url
+        
+        return thumbnailUrl
 
     #
     def getVideos(self):
@@ -62,7 +112,7 @@ class Updater(threading.Thread):
             try:
                 videoInfo = self.videos[p_videoId]
             except:
-                print "Invalid video id {}".format(p_videoId)
+                logging.error("Invalid video id %d", p_videoId)
                 videoInfo = None
         
         return videoInfo

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 
 class Config:
     
@@ -12,31 +13,44 @@ class Config:
     #
     def load(self):
         
+        logging.info("load configuration file %s", self.filename)
+        
         # open the configuration file and decode it
         try:
             with open(self.filename) as configFile:
                 self.data = json.load(configFile)
+            
+            logging.info("configuration file loaded")
+            logging.debug("configuration : %s", str(self.data))
+
         except IOError:
-            print "Unable to open the file {}".format(self.filename)
+            logging.error("Unable to open the file %s", self.filename)
             return False
+
         except:
-            print "Unable to decode the file {}".format(self.filename)
+            logging.error("Unable to decode the file %s", self.filename)
             return False
 
         return True
         
     #
     def save(self):
+
+        logging.info("save configuration file %s", self.filename)
         
         # open the configuration file and encode it
         try:
             with open(self.filename, "w") as configFile:
                 json.dump(self.data, configFile)
+            
+            logging.info("configuration file saved")
+
         except IOError:
-            print "Unable to open the file {}".format(self.filename)
+            logging.error("Unable to open the file %s", self.filename)
             return False
+
         except:
-            print "Unable to encode the file {}".format(self.filename)
+            logging.error("Unable to encode the file %s", self.filename)
             return False
 
         return True

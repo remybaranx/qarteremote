@@ -7,8 +7,9 @@
     updaters : [
         {
             "id" : "arteplus",
-            "refreshPeriod" : 15,
+            "refreshPeriod" : 900,
             "downloadDirectory" : "/tmp"
+            "downloadThumbnails" : true
         }
     ]
 }

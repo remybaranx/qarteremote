@@ -8,20 +8,30 @@ from flask import jsonify
 from flask import render_template
 from flask import url_for
 from PIL import Image
-import pyvd.manager
 import os
 import sys
 import logging
 
 #----------------------------------------------
+# Logger initialization
+#----------------------------------------------
+
+appName = os.path.splitext(os.path.basename(__file__))[0]
+
+logging.basicConfig(filename='./' + appName + '.log',
+                    format='%(asctime)s::%(levelname)s::%(filename)s:%(lineno)d::%(message)s',
+                    level=logging.DEBUG)
+
+#----------------------------------------------
 # Flask initialization
 #----------------------------------------------
 app = Flask(__name__)
-appName = os.path.splitext(os.path.basename(__file__))[0]
 
 #----------------------------------------------
 # manager initialization
 #----------------------------------------------
+import pyvd.manager
+
 pyvdManager = pyvd.manager.Manager("./conf")
 
 #----------------------------------------------
@@ -132,17 +142,14 @@ def handle_error(error):
 # Main
 #----------------------------------------------
 if __name__ == "__main__":
-
-    # create logger
-    logging.basicConfig(filename='./' + appName + '.log',
-                        format='%(asctime)s::%(levelname)s::%(filename)s:%(lineno)d::%(message)s',
-                        level=logging.DEBUG)
     logging.info("--------------- APPLICATION STARTED ----------------------")
 
     # load the configuration
-    #TODO
-    pyvdManager.loadSystemConfig()
-    pyvdManager.loadUserConfig()
+    if not pyvdManager.loadSystemConfig():
+        pyvdManager.createDefaultSystemConfig()
+        
+    if not pyvdManager.loadUserConfig():
+        pyvdManager.createDefaultUserConfig()
     
     # start the API manager
     pyvdManager.start()

@@ -36,21 +36,29 @@ class Manager:
 
     #
     def createDefaultSystemConfig():
-        self.systemConfig["server.port"] =10000
+        logging.info("create default system configuration")
+        self.systemConfig["server.port"] =12345
         self.systemConfig.save()
+
+        logging.info("configuration : %s", str(self.systemConfig))
         
     #
     def createDefaultUserConfig():
-        pass
+        logging.info("create default user configuration")
+        # TODO
+        logging.info("configuration : %s", str(self.userConfig))
 
     #
     def loadSystemConfig(self):
-        # to do
+        logging.info("load system configuration")
         return self.systemConfig.load()
         
     #
     def loadUserConfig(self):
-        self.userConfig["updaters.arteplus.refreshPeriod"] = 15
+        logging.info("load user configuration")
+        self.userConfig["updaters.arteplus.refreshPeriod"] = 900
+        self.userConfig["updaters.arteplus.downloadDirectory"] = "/tmp"
+        self.userConfig["updaters.arteplus.downloadThumbnails"] = True
         return True
 
     #
@@ -68,7 +76,7 @@ class Manager:
         for key, updater in self.updaters.items():
             updater.start()
             updater.refresh()
-            logging.info(" -> %s (%s) started", parser.id, parser.name)
+            logging.info(" -> %s (%s) started", updater.parser.id, updater.parser.name)
     
     #------------------
     # API manager
@@ -85,7 +93,7 @@ class Manager:
     #
     def refreshChannel(self, p_channelId):
         if not self.isChannelExists(p_channelId):
-            print "Invalid channel Id {}".format(p_channelId)
+            logging.error("Invalid channel Id %s", p_channelId)
             return False
             
         self.updaters[p_channelId].refresh()
@@ -98,7 +106,7 @@ class Manager:
     #
     def getVideos(self, p_channelId):
         if not self.isChannelExists(p_channelId):
-            print "Invalid channel Id {}".format(p_channelId)
+            logging.error("Invalid channel Id %s", p_channelId)
             return None
 
         return self.updaters[p_channelId].getVideos()
@@ -106,7 +114,7 @@ class Manager:
     #
     def getVideoInfo(self, p_channelId, p_videoId):
         if not self.isChannelExists(p_channelId):
-            print "Invalid channel Id {}".format(p_channelId)
+            logging.error("Invalid channel Id %s", p_channelId)
             return None
 
         return self.updaters[p_channelId].getVideoInfo(p_videoId)
@@ -130,14 +138,14 @@ class Manager:
         
         # check channel ID
         if not self.isChannelExists(p_channelId):
-            print "Invalid channel Id {}".format(p_channelId)
+            logging.error("Invalid channel Id %s", p_channelId)
             return False
 
         # check video ID
         videoInfo = self.updaters[p_channelId].getVideoInfo(p_videoId)
         
         if videoInfo is None:
-            print "Invalid video Id {}".format(p_videoId)
+            logging.error("Invalid video Id %d", p_videoId)
             return False
         
         # prepare downloading
@@ -147,7 +155,7 @@ class Manager:
         try:
             downloader.start()
         except:
-            print "Unable to start downloading {}".format(videoInfo["streams"]["HTTP"]["fr"]["Low"]["url"])
+            logging.error("Unable to start downloading %s", videoInfo["streams"]["HTTP"]["fr"]["Low"]["url"])
             return False
 
         # add in the download list

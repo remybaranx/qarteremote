@@ -3,6 +3,7 @@
 import threading
 import urllib2
 import subprocess
+import logging
 
 #	
 class HTTPDownloader(threading.Thread):
@@ -13,29 +14,33 @@ class HTTPDownloader(threading.Thread):
 		self.outDirname  = p_outputDirname 
 		self.outFilename = p_outputFilename
 		self.blocksize   = p_blocksize
+
+		# build output filename
+		if self.outFilename == "":
+			self.outFilename = self.url.split("/")[-1]
 	
 	def run(self):
-		
+
+        	logging.info("HTTP downloader started for %s to %s", self.url, self.outDirname + "/" + self.outFilename)
+
 		# open the video file
 		try:
 			inVideoFile = urllib2.urlopen(self.url)
 		except:
-			print "Unable to open the HTTP video file"
+			logging.error("Unable to open the HTTP video file")
 			return False
 
 		# extract the HTTP video file size
 		meta = inVideoFile.info()
 		inVideoFileSize = int(meta.getheaders("Content-Length")[0])
 
-		# build output filename
-		if self.outFilename == "":
-			self.outFilename = self.url.split("/")[-1]
+        	logging.debug("metadata for the url : %s", str(meta))
 
 		# open the output file
 		outVideoFile = open(self.outDirname + "/" + self.outFilename, 'wb')
 
 		if outVideoFile is None:
-			print "Unable to open {} output video file".format(self.outDirname + "/" + self.outFilename)
+			logging.error("Unable to open %s output video file", self.outDirname + "/" + self.outFilename)
 			return False
 
 		# read the HTTP video file and write it in the output video file
@@ -50,9 +55,11 @@ class HTTPDownloader(threading.Thread):
 
 				outVideoFile.write(readBuffer)
 				currentOutFileSize += len(readBuffer)
+
+                	logging.debug("%d/%d read", currentOutFileSize, inVideoFileSize)
 	
 		except:
-			print "Unable to read the HTTP video file {}".format(self.url)
+			logging.error("Unable to read the HTTP video file %s", self.url)
 			return False
 	
 		finally:
@@ -70,11 +77,13 @@ class RTMPDownloader(threading.Thread):
         self.outDirname  = p_outputDirname 
         self.outFilename = p_outputFilename
 	
+	# build output filename
+	if self.outFilename == "":
+		self.outFilename = self.url.split("/")[-1]
+    
     def run(self):
 
-        # build output filename
-        if self.outFilename == "":
-            self.outFilename = self.url.split("/")[-1]
+        logging.info("RTMP downloader started for %s to %s", self.host + "/" + self.url, self.outDirname + "/" + self.outFilename)
 
         # build the rtmpdump command
         command = ["rtmpdump",  "-r",  self.host + "/" + self.url, "-o", self.outDirname + "/" + self.outFilename]
@@ -83,7 +92,7 @@ class RTMPDownloader(threading.Thread):
         try:
             process = subprocess.Popen(command, stdout = subprocess.PIPE,  stderr = subprocess.STDOUT)
         except:
-            print "Unable to launch the command {}".format(" ".join(command))
+            logging.error("Unable to launch the command %s", " ".join(command))
             return False
         
         # monitor the subprocess (TODO)
