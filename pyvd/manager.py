@@ -45,7 +45,6 @@ class Manager:
     #
     def createDefaultUserConfig():
         logging.info("create default user configuration")
-        # TODO
         logging.info("configuration : %s", str(self.userConfig))
 
     #
@@ -56,10 +55,7 @@ class Manager:
     #
     def loadUserConfig(self):
         logging.info("load user configuration")
-        self.userConfig["updaters.arteplus.refreshPeriod"] = 900
-        self.userConfig["updaters.arteplus.downloadDirectory"] = "/tmp"
-        self.userConfig["updaters.arteplus.downloadThumbnails"] = True
-        return True
+        return self.userConfig.load()
 
     #
     def createUpdaters(self):

@@ -69,9 +69,9 @@ class Updater(threading.Thread):
                     with self.mutex:
                         self.videos[i]["thumbnail"] = thumbUrl
 
-                    logging.debug("thumbnail %s downloaded in %s", videos[i]["thumbnail"], self.config["downloadDirectory"] + "/" + thumbFilename)
+                    logging.debug("thumbnail downloaded")
 
-                logging.debug("Thumbnails downloaded !")
+                logging.debug("All thumbnails are downloaded !")
 
             # clear the refresh event
             self.refreshEvent.clear()

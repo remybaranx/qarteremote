@@ -1,9 +1,5 @@
 // user configuration for pyvd
 {
-    path : {
-        "thumbnails" : "/tmp/thumbnails",
-    }
-    
     updaters : [
         {
             "id" : "arteplus",
