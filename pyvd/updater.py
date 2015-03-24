@@ -64,7 +64,7 @@ class Updater(threading.Thread):
                     thumbFilename  = videos[i]["date"].strftime("%m%d%H%M") + "_" + str(videos[i]["duration"]) + thumbExtension
                     
                     # try to download the thumbnail
-                    thumbUrl = self._downloadThumbnail(videos[i]["thumbnail"], self.config["downloadDirectory"] + "/" + thumbFilename)
+                    thumbUrl = self._downloadThumbnail(videos[i]["thumbnail"], self.config["thumbnailsDirectory"] + "/" + thumbFilename)
 
                     with self.mutex:
                         self.videos[i]["thumbnail"] = thumbUrl

@@ -14,6 +14,8 @@ class HTTPDownloader(threading.Thread):
 		self.outDirname  = p_outputDirname 
 		self.outFilename = p_outputFilename
 		self.blocksize   = p_blocksize
+        	self.downloadedSize = -1
+        	self.totalSize      = -1
 
 		# build output filename
 		if self.outFilename == "":
@@ -32,7 +34,7 @@ class HTTPDownloader(threading.Thread):
 
 		# extract the HTTP video file size
 		meta = inVideoFile.info()
-		inVideoFileSize = int(meta.getheaders("Content-Length")[0])
+		self.totalSize = int(meta.getheaders("Content-Length")[0])
 
         	logging.debug("metadata for the url : %s", str(meta))
 
@@ -44,7 +46,7 @@ class HTTPDownloader(threading.Thread):
 			return False
 
 		# read the HTTP video file and write it in the output video file
-		currentOutFileSize = 0
+        	self.downloadedSize = 0
 		
 		try:
 			while True:
@@ -54,9 +56,9 @@ class HTTPDownloader(threading.Thread):
 					break
 
 				outVideoFile.write(readBuffer)
-				currentOutFileSize += len(readBuffer)
+				self.downloadedSize += len(readBuffer)
 
-                	logging.debug("%d/%d read", currentOutFileSize, inVideoFileSize)
+                		logging.debug("%d/%d read", self.downloadedSize, self.totalSize)
 	
 		except:
 			logging.error("Unable to read the HTTP video file %s", self.url)

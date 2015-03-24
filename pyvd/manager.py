@@ -35,7 +35,7 @@ class Manager:
             updater.stop()
 
     #
-    def createDefaultSystemConfig():
+    def createDefaultSystemConfig(self):
         logging.info("create default system configuration")
         self.systemConfig["server.port"] =12345
         self.systemConfig.save()
@@ -43,7 +43,7 @@ class Manager:
         logging.info("configuration : %s", str(self.systemConfig))
         
     #
-    def createDefaultUserConfig():
+    def createDefaultUserConfig(self):
         logging.info("create default user configuration")
         logging.info("configuration : %s", str(self.userConfig))
 
@@ -120,17 +120,23 @@ class Manager:
         downloadList = []
         
         for key, item in self.downloadList.items():
+            downloader = item["downloader"]
+            
+            if downloader is None:
+                logging.warning("Skip %s item from the download list", key)
+                continue
+            
             downloadListItem = {}
             downloadListItem["channel"] = key.split("/")[0]
             downloadListItem["videoId"] = int(key.split("/")[-1])
-            downloadListItem["downloadedSize"] = item["downloadedSize"]
-            downloadListItem["totalSsize"] = item["totalSsize"]
+            downloadListItem["downloadedSize"] = downloader.downloadedSize
+            downloadListItem["totalSsize"] = downloader.totalSize
             downloadList.append(downloadListItem)
             
         return downloadList
         
     #
-    def addToDownloadList(self, p_channelId, p_videoId):
+    def addToDownloadList(self, p_channelId, p_videoId, p_params = {}):
         
         # check channel ID
         if not self.isChannelExists(p_channelId):
@@ -143,27 +149,39 @@ class Manager:
         if videoInfo is None:
             logging.error("Invalid video Id %d", p_videoId)
             return False
+
+        # analyze parameters
+        if not p_params.has_key("quality"):
+            p_params["quality"] = "Low" # default quality : to move in a configuration file ?
+            
+        if not p_params.has_key("language"):
+            p_params["language"] = self.systemConfig["language"]
+        
+        if not p_params.has_key("protocol"):
+            p_params["protocol"]  = "HTTP" # default protocol : to move in a configuration file ?
         
         # prepare downloading
-        # TODO: modify to take into account HTTP/RTMP selection, quality, date, ...
-        downloader = pyvd.downloader.HTTPDownloader(videoInfo["streams"]["HTTP"]["fr"]["Low"]["url"], "/tmp")
+        url = videoInfo["streams"][p_params["protocol"]][p_params["language"]][p_params["quality"]]["url"]
+        downloadDir = self.updaters[p_channelId].config["downloadDirectory"]
+        
+        # TODO: take date into account
+        downloader = pyvd.downloader.HTTPDownloader(url, downloadDir)
 
         try:
             downloader.start()
         except:
-            logging.error("Unable to start downloading %s", videoInfo["streams"]["HTTP"]["fr"]["Low"]["url"])
+            logging.error("Unable to start downloading %s", url)
             return False
 
         # add in the download list
         key = p_channelId + "/" + str(p_videoId)
         self.downloadList[key] = {}
-        self.downloadList[key]["downloadedSize"] = -1
-        self.downloadList[key]["totalSsize"] = -1
         self.downloadList[key]["downloader"] = downloader
-        self.downloadList[key]["params"] = None
+        self.downloadList[key]["params"] = p_params
       
         return True
     #
     def delFromDownloadList(self, p_channelId, p_videoId):
+        # todo
         pass
     
